@@ -1,7 +1,12 @@
 
 
+vec <- c(rnorm(10), rnorm(10, mean = 5), rnorm(10, mean = 8))
+vec
 
-
-
-res <- graph_cpt_mean(y = rnorm(10), A = matrix(0,1,1), states = rnorm(10), 1)
+res <- graph_cpt_mean(y = vec,
+                      A = transition_matrix(3),
+                      states = c(0,5,10),
+                      beta = 0)
 res
+length(res[[3]])
+
