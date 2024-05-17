@@ -35,6 +35,7 @@ dist_SPD <- function(S1, S2) {
 #' @param y univariate data vector y
 #' @param A transition matrix (filled with O and 1)
 #' @param states vector of state means, a fixed mean value for each node
+#' @param beta penalty value for transition between two different states/nodes
 #'
 #' @return A list
 #'

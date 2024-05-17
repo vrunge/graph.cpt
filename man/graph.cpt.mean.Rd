@@ -13,6 +13,8 @@ graph_cpt_mean(y, A, states, beta = 0)
 \item{A}{transition matrix (filled with O and 1)}
 
 \item{states}{vector of state means, a fixed mean value for each node}
+
+\item{beta}{penalty value for transition between two different states/nodes}
 }
 \value{
 A list
