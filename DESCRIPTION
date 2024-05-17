@@ -8,6 +8,6 @@ Description: Algorithms for detecting multiple changes within time-series with a
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
-Imports: Rcpp (>= 1.0.12)
-LinkingTo: Rcpp
+Imports: Rcpp (>= 1.0.12), RcppArmadillo
+LinkingTo: Rcpp, RcppArmadillo
 RoxygenNote: 7.3.1
