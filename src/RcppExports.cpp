@@ -23,9 +23,24 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// graph_cpt_mean
+List graph_cpt_mean(const arma::vec& y, const arma::mat& A, const arma::vec& states, double beta);
+RcppExport SEXP _graph_cpt_graph_cpt_mean(SEXP ySEXP, SEXP ASEXP, SEXP statesSEXP, SEXP betaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::vec& >::type y(ySEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type A(ASEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type states(statesSEXP);
+    Rcpp::traits::input_parameter< double >::type beta(betaSEXP);
+    rcpp_result_gen = Rcpp::wrap(graph_cpt_mean(y, A, states, beta));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_graph_cpt_dist_SPD", (DL_FUNC) &_graph_cpt_dist_SPD, 2},
+    {"_graph_cpt_graph_cpt_mean", (DL_FUNC) &_graph_cpt_graph_cpt_mean, 4},
     {NULL, NULL, 0}
 };
 

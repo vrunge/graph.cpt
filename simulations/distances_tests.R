@@ -20,6 +20,16 @@ sqrt(sum(log(eigen(S)$values)^2))
 dist_SPD(S1,S2)
 
 
+library(expm)
+n <- 5
+p <- 10
+M1 <- matrix(rnorm(p*n), n, p)
+M2 <- matrix(rnorm(p*n), n, p)
+dist_SPD(S1,S2)
+
+
+
+
 
 
 
