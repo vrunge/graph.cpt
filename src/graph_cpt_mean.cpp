@@ -16,9 +16,10 @@ using namespace Rcpp;
 //' @return A list
 //'
 //' @examples
-//' n <- 5
-//' p <- 10
-//'
+//' vec <- c(rnorm(5, sd = 1), rnorm(5, mean = 1, sd = 0), rnorm(5, mean = 1.9, sd = 1))
+//' states <- c(0,1,2)
+//' res <- graph_cpt_mean(y = vec, A = transition_matrix(3),states = c(0,1,2), beta = 0)
+//' res
 //' @export
 // [[Rcpp::export]]
 List graph_cpt_mean(const arma::vec& y,
@@ -26,12 +27,21 @@ List graph_cpt_mean(const arma::vec& y,
                     const arma::vec& states,
                     double beta = 0)
 {
+  ///
+  /// INITIALIZATION
+  ///
+
   int n = y.size();
   int d = states.size();
   arma::mat costQ(d, n + 1, arma::fill::zeros);
   arma::mat path(d, n + 1, arma::fill::zeros);
 
-  costQ(0,0) = -beta;
+  for (int i = 0; i < d; i++){ costQ(i,0) = 0;} // INITIAL COST
+
+  ///
+  /// DYNAMIC PROGRAMMING
+  ///
+
   arma::mat costInter(d, d, arma::fill::zeros);
 
   for (int t = 0; t < n; t++)
@@ -46,7 +56,7 @@ List graph_cpt_mean(const arma::vec& y,
           if(A(j,i) == 1){costInter(i, j) = costQ(j,t) + beta;}
           else{costInter(i, j) = std::numeric_limits<double>::infinity();}
         }
-        std::cout << i << " - " << j << " : " << costInter(i, j) << std::endl;
+        //std::cout << i << " - " << j << " : " << costInter(i, j) << std::endl;
       }
     }
 
@@ -60,36 +70,21 @@ List graph_cpt_mean(const arma::vec& y,
     }
   }
 
-  //arma::vec best_path(n, arma::fill::zeros);
-  //best_path[n] = index_min(costQ.col(n));
-  //std::cout << tau << std::endl;
 
-  for (int t = n-1; t > 0; t--)
+  ///
+  /// BACKTRACKING
+  ///
+
+  NumericVector best_path(n);
+  best_path[n-1] = index_min(costQ.col(n));
+
+  for (int t = n-2; t >= 0; t--)
   {
-   // best_path[t] = path(best_path[t+1], t);
+    best_path[t] = path(best_path[t + 1], t + 2);
   }
-
-    //best_path <- s
-
-    //for(i in (n+1):2)
-    //{
-    //  u <- path[s,i]
-    //  s <- s - (u-1)
-    //  if(s == 0){s <- nb}
-    //  best_path <- c(s, best_path)
-    //}
-
-  //NumericVector vec_states(n);
-  //for (int t = 0; t < n; t++){vec_states[t] = best_path[t];}
-
-  // Optionally, initialize the elements of the vector (e.g., with zeros)
-  //for(int i = 0; i < n; ++i)
-  //{
-  //  vec_states[i] = 0;
-  //}
-
-  double res = 0;
-  List z = List::create(costQ, path, res);
-  return(z);
+  List res = List::create(_["costQ"] = costQ.cols(1, costQ.n_cols - 1),
+                          _["path"] = path.cols(1, path.n_cols - 1) + 1,
+                          _["best_path"] = best_path + 1);
+  return(res);
 }
 

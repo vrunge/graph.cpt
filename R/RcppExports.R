@@ -40,9 +40,10 @@ dist_SPD <- function(S1, S2) {
 #' @return A list
 #'
 #' @examples
-#' n <- 5
-#' p <- 10
-#'
+#' vec <- c(rnorm(5, sd = 1), rnorm(5, mean = 1, sd = 0), rnorm(5, mean = 1.9, sd = 1))
+#' states <- c(0,1,2)
+#' res <- graph_cpt_mean(y = vec, A = transition_matrix(3),states = c(0,1,2), beta = 0)
+#' res
 #' @export
 graph_cpt_mean <- function(y, A, states, beta = 0) {
     .Call(`_graph_cpt_graph_cpt_mean`, y, A, states, beta)

@@ -23,7 +23,8 @@ A list
 change point inference for univariate vector constraint by a graph structure and fixed means
 }
 \examples{
-n <- 5
-p <- 10
-
+vec <- c(rnorm(5, sd = 1), rnorm(5, mean = 1, sd = 0), rnorm(5, mean = 1.9, sd = 1))
+states <- c(0,1,2)
+res <- graph_cpt_mean(y = vec, A = transition_matrix(3),states = c(0,1,2), beta = 0)
+res
 }
