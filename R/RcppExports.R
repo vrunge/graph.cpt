@@ -26,11 +26,77 @@ dist_SPD <- function(S1, S2) {
     .Call(`_graph_cpt_dist_SPD`, S1, S2)
 }
 
-#' @title graph.cpt.mean
+#' @title ts_to_SPDts
+#'
+#' @description Converting a time series into a sequence of SPD matrices (covariance matrices)
+#'
+#' @name ts_to_SPDts
+#'
+#' @param data matrix of data, size p x n for p dimensions and n data points
+#' @param window_length the number of data points to take for computing each covariance matrix
+#'
+#' @return A list of SPD matrices
+#'
+#' @export
+ts_to_SPDts <- function(data, window_length) {
+    .Call(`_graph_cpt_ts_to_SPDts`, data, window_length)
+}
+
+#' @title SPDts_to_dists
+#'
+#' @description Computing all the distance between a list of SPD matrices of size n (obtained by the raw data) and a list of reference matrices of size d.
+#'
+#' @name SPDts_to_dists
+#'
+#' @param SPDts list of SPD matrices of size n
+#' @param states list of reference matrices of size d
+#'
+#' @return A matrix of distances between SPD matrices of size d x n
+#'
+#' @export
+SPDts_to_dists <- function(SPDts, states) {
+    .Call(`_graph_cpt_SPDts_to_dists`, SPDts, states)
+}
+
+#' @title ts_to_dists
+#'
+#' @description function combining the functions ts_to_SPDts and SPDts_to_dists
+#'
+#' @name ts_to_dists
+#'
+#' @param data matrix of data, size p x n for p dimensions and n data points
+#' @param states list of reference matrices of size d
+#' @param window_length the number of data points to take for computing each covariance matrix
+#'
+#' @return A matrix of distances between SPD matrices of size d x n
+#'
+#' @export
+ts_to_dists <- function(data, states, window_length) {
+    .Call(`_graph_cpt_ts_to_dists`, data, states, window_length)
+}
+
+#' @title graph_cpt_manifold
+#'
+#' @description change point inference for univariate vector constraint by a graph structure and distances computed on a manifold structure
+#'
+#' @name graph_cpt_manifold
+#'
+#' @param dists matrix of distances between data and states, size d x n for d states and n data points
+#' @param A transition matrix (filled with O and 1)
+#' @param beta penalty value for transition between two different states/nodes
+#'
+#' @return A list
+#'
+#' @export
+graph_cpt_manifold <- function(dists, A, beta = 0) {
+    .Call(`_graph_cpt_graph_cpt_manifold`, dists, A, beta)
+}
+
+#' @title graph_cpt_mean
 #'
 #' @description change point inference for univariate vector constraint by a graph structure and fixed means
 #'
-#' @name graph.cpt.mean
+#' @name graph_cpt_mean
 #'
 #' @param y univariate data vector y
 #' @param A transition matrix (filled with O and 1)

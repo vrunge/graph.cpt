@@ -2,11 +2,11 @@
 // [[Rcpp::depends(RcppArmadillo)]]
 using namespace Rcpp;
 
-//' @title graph.cpt.mean
+//' @title graph_cpt_mean
 //'
 //' @description change point inference for univariate vector constraint by a graph structure and fixed means
 //'
-//' @name graph.cpt.mean
+//' @name graph_cpt_mean
 //'
 //' @param y univariate data vector y
 //' @param A transition matrix (filled with O and 1)
