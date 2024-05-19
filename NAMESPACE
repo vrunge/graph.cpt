@@ -2,3 +2,5 @@ exportPattern("^[[:alpha:]]+")
 importFrom(Rcpp, evalCpp)
 import(RcppArmadillo)
 useDynLib(graph.cpt, .registration = TRUE)
+
+importFrom("stats", "rnorm")

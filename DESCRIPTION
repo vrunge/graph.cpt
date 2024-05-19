@@ -4,7 +4,7 @@ Title: Change point algorithm constrained by a graph with cost value derived fro
 Version: 0.1.0
 Author: c(person("Vincent", "Runge", email = "vincent.runge@univ-evry.fr", role = c("aut", "cre")), person("Anica", "Kostic", email = "A.Kostic@lse.ac.uk", role = c("aut")), person("Charles", "Truong", email = "ctruong@ens-paris-saclay.fr", role = c("aut")))
 Maintainer: Vincent Runge <vincent.runge@univ-evry.fr>
-Description: Algorithms for detecting multiple changes within time-series with a graph-constrained structure. The detection is based on the minimization of a penalized likelihood. We use a dynamic programming algorithm called optimal partitioning with fixed state values and a transition matrix to define the accessible transitions between states. The distance function is derived from the geodesics in a Riemannian manifold. First version of this package deals with distance between symmetric positive-definite matrices.
+Description: Algorithms for detecting multiple changes within time-series constrained by a graph-constrained structure. The detection is based on the minimization of a penalized likelihood. We use a dynamic programming algorithm called optimal partitioning with fixed state values and a transition matrix to define the accessible transitions between states. The distance function is derived from the geodesics in a Riemannian manifold. With a given value assiciated to each state, we do not search for the optimal fit, the cost to the segment is the sum of the distances from the data points in the segment to the reference value.  First version of this package deals with distance between symmetric positive-definite matrices. 
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
