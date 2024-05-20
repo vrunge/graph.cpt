@@ -37,10 +37,39 @@ In a second example, we also search a way to infer good state values for the gra
 
 # A simple example
 
-We test the `dust_R_1D` function with different pruning options and different data models.
+We generate 10 matrices of size 3, with eigenvalues 1,2,3.
 
 ```{r}
 data <- dataGenerator_SPD(chpts = 10, d = 3, eigenvalues_mat = matrix(c(1,2,3),3,1))
 data
 ```
+We compute the distances to reference matrices `sigma1`, `sigma2`, `sigma3`.
+
+```{r}
+dim <- 3
+s1 <- 1*sample(dim)
+s2 <- 1.5*sample(dim)
+s3 <- 2*sample(dim)
+
+s <- matrix(c(s1,s2,s3),dim,3)
+
+sigma1 <- diag(s1, dim)
+sigma2 <- diag(s2, dim)
+sigma3 <- diag(s3, dim)
+```
+
+
+The distances are thus:
+
+```{r}
+#for(i in 1:10){print(eigen(data[[i]]))}
+sigma123 <- list(sigma1,sigma2,sigma3)
+dists <- SPDts_to_dists(data, sigma123)
+dists
+apply(dists, 2, which.min)
+```
+
+
+
+
 
