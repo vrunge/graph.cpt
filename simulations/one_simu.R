@@ -17,7 +17,7 @@ library(rWishart)
 data <- rWishart(10, 10, diag(1, 5))
 for(i in 1:10) print(dist_SPD(data[,,1], data[,,i]))
 
-data <- rWishart(10, 10^5, diag(1, 5))
+data <- rWishart(10, df = 10^5, diag(1, 5))
 for(i in 1:10) print(dist_SPD(data[,,1], data[,,i]))
 
 data <- rWishart(10, 10^10, diag(1, 5))

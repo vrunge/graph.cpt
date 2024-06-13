@@ -55,7 +55,7 @@ List graph_cpt_manifold(const arma::mat& dists,
 
      for (int j = 0; j < d; j++)
      {
-       costQ(j, t + 1) = costInter.row(j).min() + dists(j, t);
+       costQ(j, t + 1) = costInter.row(j).min() + pow(dists(j, t), 2);
      }
      for (int j = 0; j < d; j++)
      {
