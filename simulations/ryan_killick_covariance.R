@@ -5,7 +5,7 @@ install_github("s-ryan1/Covariance_RMT_simulations/cpt.cov")
 
 #THINGS TO CONSIDER:
 
-#### 1.
+#### 1. 
 #They have two different settings simulating the matrix sequences
 #one to satisfy the conditions from Wang et al, the second one to satisfy the conditions by
 #Ryan, Killick
@@ -26,7 +26,7 @@ install_github("s-ryan1/Covariance_RMT_simulations/cpt.cov")
 #See these files on GitHub:
 #wang_multi_cpts.R
 #ratio_multi_cpts.R
-#These functions only deal with 4 CPs, I will just modify the part of their run.sim function
+#These functions only deal with 4 CPs, I will just modify the part of their run.sim function 
 #that generates the data, so that the pattern is repeated and we don't need to have just 4 CPs in a pattern
 
 #### 4.
@@ -36,7 +36,7 @@ install_github("s-ryan1/Covariance_RMT_simulations/cpt.cov")
 #If minseglen is smaller, the FPR is very large.
 #
 #Some questions:
-#How long should the intervals between the change-points be?
+#How long should the intervals between the change-points be? 
 #What width of the sliding window should we use?
 
 
@@ -64,64 +64,73 @@ if(max(result, na.rm=T)>bonferoni(n,.05)){
   print(sprintf("Change detected at %d", which.max(abs(result))))
 } else {
   print(sprintf("No change detected"))
-}
+} 
 
 ##### MODIFYING ratio_multi_cps.R  #####
 
 library(cpt.cov)
 library(tidyverse)
 
-args = commandArgs(trailingOnly=TRUE)
-iter = as.numeric(args[1])
+#args = commandArgs(trailingOnly=TRUE)
+#iter = as.numeric(args[1])
 
 #Compared to their run.sim function I added the arguments
-#1. cp_num - number of states
+#1. cp_num - number of states - 1
 #2. num_repeats - number of times we are repeating the pattern
 
-run.sim = function(i, n, p, cp_num, num_repeats){
+#this function generates the matrices that are far enough apart with respect to d2 
+#(the metric proposed by ryan killick)
 
+run.sim = function(i, n, p, cp_num, num_repeats, diff){
+  
   if(n < 5*p*log(n)){return(NA) }
   sigma=list()
+  
+ 
+  # B is the matrix of eigenvectors of a pxp covariance matrix (random orthonormal matrix) 
+  B = rnorm(10*p,0,1) %>% matrix(ncol=p) %>% cov %>% eigen %>% pluck("vectors")	
+  #diagonal eigenvalue matrix (eigenvalues from U[0.1,10])
+  sigma[[1]] = diag(runif(p,.1,10))  
+  #sigma[[1]] is Lambda_1 in the text (in the code they later multiply with B to get Sigma_1 from the text)
+  
+  #The next sigma (Lambda) depends on the previous to control that the size of the changes is big enough
+  #The changes are big enough if the eigenvalues are sufficiently far apart
+  #diff = 1 #this is K (kappa) in the text?
 
-  set.seed(1234)
-  # p is the dimension of the covariance matrices
-  # B is the matrix of eigenvectors of a pxp covariance matrix
-  B = rnorm(10*p,0,1) %>% matrix(ncol=p) %>% cov %>% eigen %>% pluck("vectors")
-  #diagonal matrix of sd? from U[0.1,10]
-  sigma[[1]] = diag(runif(p,.1,10))  #this is Lambda_1 in the text
-
-  #the next sigma depends on the previous to control that the size of the changes is big enough
-  diff=.2
-  set.seed(541*p +7*i)
   for(k in 2:(cp_num + 1)){
-    delta = runif(p, 0, diff*p) %>% sort %>% diff #why diff*p
-    delta = c(delta, diff*p-sum(delta)) + 1
+    delta = runif(p, 0, diff*p) %>% sort %>% diff
+    delta = c(delta, diff*p-sum(delta)) + 1 #why do we have +1 here? Can't see it in the text
     delta = delta^((-1)^(rbernoulli(p,.5)))
     sigma[[k]] = delta*sigma[[k-1]]
   }
-  #sigma is the sequence of true covariance matrices
-  #left and right multiply each with B
-  sigma = map(sigma, ~B%*%((.x))%*%t(B)) #this is step 4
-
+  #sigma up to here is the sequence of Lambda's
+  sigma = map(sigma, ~B%*%((.x))%*%t(B)) #this is step 5 (page 32)
+  sigma = rep(sigma, num_repeats)
+  
   #gen.cpt.locs calls segment.remover which is in data_generation.R
-  #segment.remover randomly picks a position i and removes an interval
+  #segment.remover randomly picks a position i and removes an interval 
   #i-minseglen, i+minseglen from the sequence
   #this function is supposed to generate the change-point locations
   #but in a bit weird way?
-
+  
   cpts =  gen.cpt.locs(n, cp_num, max(30,floor(p*log(n))))
-  lengths= diff(c(0,cpts,n))  #lengths of segments between cps
-
+  cpts = c(cpts, n)
+  #i have to modify this, cpts contains the change-points of the first period only
+  #have to add the change-points in other periods
+  cpts_complete = cpts
+  for(i in 1:(num_repeats-1))
+    cpts_complete = append(cpts_complete, n*i+cpts)
+  cpts = cpts_complete[-length(cpts_complete)]
+  
+  lengths= diff(c(0,cpts,n*num_repeats))  #lengths of segments between cps
+  
   #for each segment of length s, generate s*p normal variables, put them into matrix
+  #each row is a N(0, I) random vector that we multiply by the corresponding Sigma to get the data as N(0, Sigma)
   noise = map(lengths, ~rnorm(.x*p, 0, 1)) %>% map(matrix, ncol=p)
-  #data is noise multiplied by sigma
-  data = map2(noise, sigma, ~(.x)%*%.y) %>% reduce(rbind)
+  data = map2(noise, sigma, ~(.x)%*%.y) %>% reduce(rbind) 
 
-  #i added this, to have more cps and cyclic structure
-  num_repeats <- 5
-  matrix_list <- replicate(num_repeats, data, simplify = FALSE)
-  data <- do.call(rbind, matrix_list)
-
+  n = n*num_repeats  
+  
   result.fisher = bin.seg(data, c(0,n), matrix.dist.test.stat, threshold=qnorm(1-.05/(n^2)), minseglen=max(c(30,4*p)), c())
   fisher = result.fisher %>% bin.seg.to.cpt(qnorm(1-.05/(n^2)))
   wang.thresh = wang.threshold(data)
@@ -130,14 +139,14 @@ run.sim = function(i, n, p, cp_num, num_repeats){
   #print(fisher$cpts)
   result.galeano = bin.seg(data, c(0,n), cpt.cov:::galeano.cusum.stat, threshold=qnorm(1-.05/(n^2)), minseglen=40, c())
   galeano = result.galeano %>% bin.seg.to.cpt(qnorm(1-.05/(n^2)))
-
-
+  
+  
   fisher.cpt.error = detection.rates(fisher$cpts, cpts, 20)
   wang.cpt.error = detection.rates(wang$cpts, cpts, 20)
   galeano.cpt.error = detection.rates(galeano$cpts, cpts, 20)
   #set.seed(353*n + 541*p + 7*i)
   #return(max(matrix.dist.test.stat(data, 4*p), na.rm=T))
-
+  
   if(p<=20 & p*(p+1) < 2*n){
     safe.bin.seg = safely(bin.seg)
     result.aue = safe.bin.seg(data, c(0,n), aue.stat, threshold=qnorm(.95), minseglen=p*log(n), c())
@@ -150,54 +159,41 @@ run.sim = function(i, n, p, cp_num, num_repeats){
     m_hat = map_dbl(rates, ~.x$m)
     TDR = map_dbl(rates, ~.x$TDR)
     FDR = map_dbl(rates, ~.x$FDR)
-    mae = map_dbl(models, MAE,  cpts, data)
-    smae = map_dbl(models, spectral.error,  cpts, data)
+    mae = map_dbl(models, MAE,  cpts, data) 
+    smae = map_dbl(models, spectral.error,  cpts, data) 
     result = tibble(
       method=c("Ratio", "Wang", "Aue", "Galeano"),
-      TDR=TDR, FDR=FDR, m_hat=m_hat,
+      TDR=TDR, FDR=FDR, m_hat=m_hat, 
       MAE=mae, SMAE=smae, n=n, p=p, power=diff)
     #result = result %>% gather("metric", "value",-method,-n,-p,-power)
     return(result)
   }
-
+  
   models = list(fisher$cpts, wang$cpts, galeano$cpts)
   rates = map(models, detection.rates, cpts, 20)
   m_hat = map_dbl(rates, ~.x$m)
   TDR = map_dbl(rates, ~.x$TDR)
   FDR = map_dbl(rates, ~.x$FDR)
-  mae = map_dbl(models, MAE,  cpts, data)
-  smae = map_dbl(models, spectral.error,  cpts, data)
+  mae = map_dbl(models, MAE,  cpts, data) 
+  smae = map_dbl(models, spectral.error,  cpts, data) 
   result = tibble(
     method=c("Ratio", "Wang", "Galeano"),
-    TDR=TDR, FDR=FDR, m_hat=m_hat,
+    TDR=TDR, FDR=FDR, m_hat=m_hat, 
     MAE=mae, SMAE=smae, n=n, p=p, power=diff)
-  result = result %>% gather("metric", "value",-method,-n,-p,-power)
+  #result = result %>% gather("metric", "value",-method,-n,-p,-power)
   #result = result %>% gather("metric", "value")
   return(result)
 }
 
 
-#n = c(500,1000,2000,5000)
-#p= c(3,10,30,100)
-#run = seq(0,9)*100
-
-#iter = 1
-#parameters = cross3(n,p,run)
-#n= parameters[[iter]][[1]]
-#p= parameters[[iter]][[2]]
-#run= parameters[[iter]][[3]]
-
+diff = 0.5
 cp_num = 5
 num_repeats = 10
-n = 50*cp_num
+n = 100*cp_num
 p = 3
 
 safe_run = safely(run.sim)
-result=map(seq(1,1), ~safe_run(run+.x, n, p, cp_num))
-
+result=map(seq(1,1), ~safe_run(run+.x, n, p, cp_num, num_repeats, diff))
 result
 
-result[[1]]$error
-
-
-
+#m_hat is the absolute difference between the number of true and estimated changepoints
