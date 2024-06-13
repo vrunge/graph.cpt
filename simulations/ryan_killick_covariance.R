@@ -118,8 +118,9 @@ run.sim = function(i, n, p, cp_num, num_repeats, diff){
   #i have to modify this, cpts contains the change-points of the first period only
   #have to add the change-points in other periods
   cpts_complete = cpts
-  for(i in 1:(num_repeats-1))
-    cpts_complete = append(cpts_complete, n*i+cpts)
+  if(num_repeats > 1)
+    for(i in 1:(num_repeats-1))
+      cpts_complete = append(cpts_complete, n*i+cpts)
   cpts = cpts_complete[-length(cpts_complete)]
   
   lengths= diff(c(0,cpts,n*num_repeats))  #lengths of segments between cps
@@ -186,11 +187,14 @@ run.sim = function(i, n, p, cp_num, num_repeats, diff){
 }
 
 
-diff = 0.5
-cp_num = 5
-num_repeats = 10
-n = 100*cp_num
-p = 3
+diff = 1 #this measures the strength of the jump
+cp_num = 5 #the number of change-points in each cycle
+num_repeats = 10 #how many periods we consider (note that the cyclic data is such that the last cycle is complete, not interrupted, can change it if necessary ) 
+n = 100*cp_num #the length of each cycle
+p = 3 #dimension of the time series (SPD dimension pxp)
+
+#note that the total number of change-points is cp_num*num_repeats + num_repeats - 1
+#because the end of the cycles are also change-points, n, 2n, 3n, ..., (num_repeats - 1)n
 
 safe_run = safely(run.sim)
 result=map(seq(1,1), ~safe_run(run+.x, n, p, cp_num, num_repeats, diff))
